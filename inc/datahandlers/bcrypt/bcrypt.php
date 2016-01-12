@@ -9,7 +9,7 @@ class BcryptHasher implements HasherInterface {
 	 *
 	 * @var int
 	 */
-	protected $rounds = 13;
+	protected $rounds = 12;
 
 	/**
 	 * Hash the given value.
