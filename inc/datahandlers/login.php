@@ -9,7 +9,7 @@
  */
 
 // Disallow direct access to this file for security reasons
-if(!defined("IN_MYBB"))
+if(!defined("IN_MYBB"))if($salted_password !== $this->login_data['password'])
 {
 	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
@@ -203,11 +203,31 @@ class LoginDataHandler extends DataHandler
 
 		$plugins->run_hooks('datahandler_login_verify_password_end', $args);
 
-		if($salted_password !== $this->login_data['password'])
-		{
-			$this->invalid_combination(true);
-			return false;
-		}
+		if(strlen($this->login_data['password']) == 32) {
+            //if the password is still using md5
+            if($salted_password != $this->login_data['password'])
+            {
+                $this->invalid_combination(true);
+                return false;
+            } else {
+                //update the password to bcrypt
+                include_once(dirname(__FILE__)."/bcrypt/bcrypt.php");
+
+                $hasher = new BcryptHasher;
+
+                $sql_array = array(
+                    "password" => $hasher->make($user['password'])
+                );
+
+                $db->update_query("users", $sql_array, "uid = '{$this->login_data['uid']}'");
+            }
+        } else {
+            include_once(dirname(__FILE__)."/bcrypt/bcrypt.php");
+            $hasher = new BcryptHasher;
+            if(!$hasher->check($user['password'], $this->login_data['password'])) {
+                $this->invalid_combination(true);
+                return false;
+            } 
 
 		return true;
 	}
