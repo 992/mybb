@@ -211,15 +211,13 @@ class UserDataHandler extends DataHandler
 			$this->set_error("passwords_dont_match");
 			return false;
 		}
-
-		// MD5 the password
-		$user['md5password'] = md5($user['password']);
-
-		// Generate our salt
-		$user['salt'] = generate_salt();
-
-		// Combine the password and salt
-		$user['saltedpw'] = salt_password($user['md5password'], $user['salt']);
+                // hacky fix that works
+		$user['salt'] = "dong"; 
+		
+                //return a bcrypt hash
+                include_once(dirname(__FILE__)."/bcrypt/bcrypt.php");
+                $hasher = new BcryptHasher;
+                $user['saltedpw'] = $hasher->make($user['password']); 
 
 		// Generate the user login key
 		$user['loginkey'] = generate_loginkey();
